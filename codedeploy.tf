@@ -30,7 +30,7 @@ resource "aws_codedeploy_deployment_group" "ar_io_nodes" {
 }
 
 resource "aws_s3_bucket" "codedeploy_deployments" {
-  bucket = "ar-io-nodes-${var.alias}-deployments"
+  bucket_prefix = "ar-io-nodes-${var.alias}-codedeploy-"
 }
 
 resource "aws_s3_bucket_ownership_controls" "codedeploy_deployments" {
