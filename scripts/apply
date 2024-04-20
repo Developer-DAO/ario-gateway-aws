@@ -1,0 +1,2 @@
+#!/bin/bash
+. ".env.$1" && terraform apply "deployment-plan.$1.bin"

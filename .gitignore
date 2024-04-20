@@ -14,8 +14,8 @@
  .terraformrc
  terraform.rc
 
-tf-plan
+*.bin
 *.tfstate
 *.tfstate.backup
 
-*.test.sh
+.env.*
