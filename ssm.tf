@@ -7,7 +7,7 @@ resource "aws_kms_key" "ssm" {
 resource "aws_ssm_parameter" "dotenv" {
   description = "Used to configure gateway instances"
   name        = "/ar-io-nodes/env"
-  value       = jsonencode(file("${path.module}/resources/.env"))
+  value       = file("${path.module}/resources/.env.gateway.test")
   type        = "SecureString"
   key_id      = aws_kms_key.ssm.key_id
 }

@@ -7,9 +7,15 @@ The domains are managed with Vercel, the rest is hosted on AWS.
 
 ## Environment Variables
 
+### Terraform Deploy
+
 Define the Terraform inputs and provider API keys via environment variables.
 
 You can copy the `template.env` to `.env.<ENVIRONMENT>` and fill in the values.
+
+### AR.IO Gateway Configuration
+
+The AR.IO gateway configuration is stored under `resources/.env.gateway`
 
 ## Commands
 

@@ -18,4 +18,5 @@
 *.tfstate
 *.tfstate.backup
 
-.env.*
+.env.*.*
+outputs.*
