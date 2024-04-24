@@ -46,7 +46,8 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_cloudwatch_log_group" "ar_io_nodes_log_group" {
-  name = "ar-io-nodes-${var.alias}"
+  name              = "ar-io-nodes-${var.alias}"
+  retention_in_days = 365
 }
 
 resource "aws_launch_template" "ar_io_nodes_launch_template" {

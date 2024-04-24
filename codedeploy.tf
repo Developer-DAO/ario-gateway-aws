@@ -31,19 +31,20 @@ resource "aws_codedeploy_deployment_group" "ar_io_nodes" {
 
 resource "aws_s3_bucket" "codedeploy_deployments" {
   bucket_prefix = "ar-io-nodes-${var.alias}-codedeploy-"
+  force_destroy = true # delete even if not empty
 }
 
 resource "aws_s3_bucket_ownership_controls" "codedeploy_deployments" {
   bucket = aws_s3_bucket.codedeploy_deployments.id
   rule {
-    object_ownership = "BucketOwnerPreferred"
+    object_ownership = "BucketOwnerEnforced"
   }
 }
 
-resource "aws_s3_bucket_acl" "codedeploy_deployments" {
-  depends_on = [aws_s3_bucket_ownership_controls.codedeploy_deployments]
+resource "aws_s3_bucket_public_access_block" "codedeploy_deployments" {
   bucket = aws_s3_bucket.codedeploy_deployments.id
-  acl    = "private"
+  block_public_acls   = true
+  block_public_policy = true
 }
 
 resource "aws_s3_bucket_versioning" "codedeploy_deployments" {

@@ -27,11 +27,12 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_lb" "alb" {
-  name               = "ar-io-${var.alias}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = var.public_subnets
+  name                       = "ar-io-${var.alias}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = var.public_subnets
+  drop_invalid_header_fields = true
 }
 
 resource "aws_lb_target_group" "ar_io_nodes_tg" {
@@ -42,10 +43,12 @@ resource "aws_lb_target_group" "ar_io_nodes_tg" {
   target_type = "instance"
 
   health_check {
-    enabled = true
     matcher = "200-299"
     path    = "/ar-io/healthcheck"
-    timeout = 4
+    timeout = 4 
+    interval = 20
+    healthy_threshold = 2
+    unhealthy_threshold = 2
   }
 
   load_balancing_algorithm_type = "least_outstanding_requests"

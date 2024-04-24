@@ -1,2 +1,3 @@
 #!/bin/bash
-. "resources/.env.terraform.$1" && terraform plan "-out=./resources/terraform-plan.$1.bin"
+
+. "resources/.env.terraform" && terraform plan "-out=./resources/terraform-plan.bin"

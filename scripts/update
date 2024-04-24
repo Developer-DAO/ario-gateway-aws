@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# This script loads a specific release from GitHub and deploys it via CodeDeploy
+
+
+release=$1
+environmentPath="resources/.env.terraform"
+
+. "$environmentPath"
+
+fileName="${release}.tar.gz"
+downloadPath="resources/${fileName}"
+codeDeployAppName="ar-io-nodes-${TF_VAR_alias}"
+bucketName=$(. "$environmentPath" && terraform output -raw CodeDeployBucket)
+
+curl -o "$downloadPath" -L "https://github.com/ar-io/ar-io-node/archive/refs/tags/${fileName}"
+
+. "$environmentPath" && aws s3 cp "$downloadPath" "s3://${bucketName}/${fileName}"
+
+result=$(. "$environmentPath" && aws deploy create-deployment \
+--region "$TF_VAR_region" \
+--application-name "$codeDeployAppName" \
+--deployment-config-name CodeDeployDefault.OneAtATime \
+--deployment-group-name "$codeDeployAppName" \
+--s3-location "bucket=${bucketName},bundleType=tgz,key=${fileName}" \
+--description "Deploying $release to ${codeDeployAppName}")
+
+deploymentId=$(echo "$deploymentId" | jq -r .deploymentId)
+
+echo "https://${TF_VAR_region}.console.aws.amazon.com/codesuite/codedeploy/deployments/${deploymentId}?region=${TF_VAR_region}"

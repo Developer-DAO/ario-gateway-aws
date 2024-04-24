@@ -18,5 +18,7 @@
 *.tfstate
 *.tfstate.backup
 
-.env.*.*
-outputs.*
+.env.*
+outputs
+
+*.tar.gz

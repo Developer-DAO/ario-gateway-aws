@@ -1,2 +1,3 @@
 #!/bin/bash
-. "resources/.env.$1" && terraform init
+
+. "resources/.env.terraform" && terraform init -reconfigure

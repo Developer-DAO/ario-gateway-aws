@@ -3,7 +3,7 @@ terraform {
     region = "us-west-2"
     dynamodb_table = "ar-io-gateway-terraform-state"
     bucket = "ar-io-gateway-terraform-state"
-    key = "test-state/terraform.tfstate"
+    key = "ar-io-gateway.tfstate"
   }
 
   required_providers {

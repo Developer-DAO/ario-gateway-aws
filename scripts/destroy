@@ -3,5 +3,5 @@ echo "Do you want to delete all cloud resources and their data? (y/N)"
 read confirmed
 if [[ $confirmed =~ ^[Yy]$ ]] 
 then 
-  . "resources/.env.terraform.$1" && terraform destroy
+  . "resources/.env.terraform" && terraform destroy
 fi
