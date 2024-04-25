@@ -1,0 +1,3 @@
+#!/bin/bash
+
+systemctl start ar-io-node

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+service_url="http://localhost:3000/ar-io/healthcheck"
+
+for i in `seq 1 100`; do
+  if [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $service_url)" != "200" ]]; then 
+    break
+  fi
+  sleep 2
+done
+
+response=$(curl -w '%{http_code}' --silent -o /dev/null $service_url)
+if [[ "$response" != "200" ]]; then
+  echo "Error: ${service_url} returned ${response}"
+  exit 1
+fi
+
+docker image prune -a -f

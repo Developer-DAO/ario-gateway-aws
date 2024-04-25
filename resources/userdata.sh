@@ -1,12 +1,10 @@
 #!/bin/bash
-
 set -x
 
 apt-get update
 apt-get install -y \
   curl \
   docker-compose \
-  git \
   kitty-terminfo \
   nfs-common \
   python3-pip \
@@ -140,8 +138,13 @@ systemctl restart amazon-cloudwatch-agent
 # Get the region from the metadata service
 export AWS_DEFAULT_REGION=$(curl http://169.254.169.254/latest/meta-data/placement/region)
 
+# Release 9 compose file without "build:" attributes
+mkdir -p /opt/ar-io-node
+curl -o /opt/ar-io-node/docker-compose.yaml \
+-L https://gist.githubusercontent.com/kay-is/370cf4a7d08b3fa4bb5f4fb1ce60212e/raw/ec2307ffac543265eab8395cbd06448b36b9e3cc/docker-compose.yaml
+
 # Clone ar-io-node repo
-git clone https://github.com/ar-io/ar-io-node.git /opt/ar-io-node
+#git clone https://github.com/ar-io/ar-io-node.git /opt/ar-io-node
 
 # Download the .env file from SSM
 aws ssm get-parameter \

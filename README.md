@@ -35,12 +35,18 @@ These commands will use the environment variables from
 
 Plan the deployment and save the plan into a file:
 
-    ./scripts/plan
+    scripts/plan
 
 Deploy the infrastructure from the plan file:
 
-    ./scripts/apply
+    scripts/apply
 
 Destroy the infrastructure:
 
-    ./scripts/destroy
+    scripts/destroy
+
+Update to a new release:
+
+    scripts/update <REVISION>
+
+Create a new revision in the `revisions` folder before running this command.

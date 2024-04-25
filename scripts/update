@@ -1,30 +1,24 @@
 #!/bin/bash
 
-# This script loads a specific release from GitHub and deploys it via CodeDeploy
+revision=$1
+environment="resources/.env.terraform"
+archiveFile="${revision}.tar.gz"
+archivePath="revisions/archives/${archiveFile}"
+revisionPath="revisions/${revision}"
 
+. "$environment"
 
-release=$1
-environmentPath="resources/.env.terraform"
+find $revisionPath -printf "%P\n" | \
+tar -czf "$archivePath" --no-recursion -C "$revisionPath" -T -
 
-. "$environmentPath"
+revisionBucket=$(. "$environment" && terraform output -raw CodeDeployBucket)
+. "$environment" && aws s3 cp "$archivePath" "s3://${revisionBucket}/${archiveFile}"
 
-fileName="${release}.tar.gz"
-downloadPath="resources/${fileName}"
 codeDeployAppName="ar-io-nodes-${TF_VAR_alias}"
-bucketName=$(. "$environmentPath" && terraform output -raw CodeDeployBucket)
-
-curl -o "$downloadPath" -L "https://github.com/ar-io/ar-io-node/archive/refs/tags/${fileName}"
-
-. "$environmentPath" && aws s3 cp "$downloadPath" "s3://${bucketName}/${fileName}"
-
-result=$(. "$environmentPath" && aws deploy create-deployment \
+. "$environment" && aws deploy create-deployment \
 --region "$TF_VAR_region" \
 --application-name "$codeDeployAppName" \
 --deployment-config-name CodeDeployDefault.OneAtATime \
 --deployment-group-name "$codeDeployAppName" \
---s3-location "bucket=${bucketName},bundleType=tgz,key=${fileName}" \
---description "Deploying $release to ${codeDeployAppName}")
-
-deploymentId=$(echo "$deploymentId" | jq -r .deploymentId)
-
-echo "https://${TF_VAR_region}.console.aws.amazon.com/codesuite/codedeploy/deployments/${deploymentId}?region=${TF_VAR_region}"
+--s3-location "bucket=${revisionBucket},bundleType=tgz,key=${archiveFile}" \
+--description "Deploying revision ${revision} to ${codeDeployAppName}"
