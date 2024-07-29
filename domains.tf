@@ -44,6 +44,7 @@ resource "aws_acm_certificate" "alb" {
 }
 
 resource "vercel_dns_record" "dns_validation" {
+  count = var.use_vercel_domains ? 1 : 0
   comment = "AR.IO - DNS validation (Terraform)"
   domain  = var.domain_name
   name    = trimsuffix(tolist(aws_acm_certificate.alb.domain_validation_options)[0].resource_record_name, ".${var.domain_name}.")
