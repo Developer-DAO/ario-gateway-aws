@@ -6,7 +6,7 @@ AR.IO gateway on AWS.
 The domains are managed with Vercel, the rest is hosted on AWS.
 
 > Note: Current version used for first deploy is 15. This version is defined in
-> [resources/userdata.sh](resources/userdata.sh:144) and should be updated when
+> [resources/userdata.sh](resources/userdata.sh#L144) and should be updated when
 > new releases are available.
 
 ## Environment Variables
