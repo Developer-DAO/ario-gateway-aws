@@ -1,4 +1,5 @@
 resource "vercel_dns_record" "ar_io_root" {
+  count = var.use_vercel_domains ? 1 : 0
   type    = "CNAME"
   domain  = var.domain_name
   name    = var.subdomain_name
@@ -7,6 +8,7 @@ resource "vercel_dns_record" "ar_io_root" {
 }
 
 resource "vercel_dns_record" "ar_io_sandbox" {
+  count = var.use_vercel_domains ? 1 : 0
   type    = "CNAME"
   domain  = var.domain_name
   name    = "*.${var.subdomain_name}"
