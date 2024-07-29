@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -e
+
+service_url="http://localhost:3000/ar-io/healthcheck"
+
+# Waiting until server is running
+for i in `seq 1 30`; do
+  if [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $service_url)" == "200" ]]; then 
+    break
+  fi
+  sleep 5
+done
+
+# Checking server status
+response=$(curl -w '%{http_code}' --silent -o /dev/null $service_url)
+if [[ "$response" != "200" ]]; then
+  echo "Error: ${service_url} returned ${response}"
+  exit 1
+fi
+
+# Deleting docker images of previous releases
+docker image prune -a -f

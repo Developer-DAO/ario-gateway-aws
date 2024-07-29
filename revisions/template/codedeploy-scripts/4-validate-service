@@ -3,11 +3,11 @@ set -e
 
 service_url="http://localhost:3000/ar-io/healthcheck"
 
-for i in `seq 1 100`; do
-  if [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $service_url)" != "200" ]]; then 
+for i in `seq 1 10`; do
+  if [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $service_url)" == "200" ]]; then 
     break
   fi
-  sleep 2
+  sleep 5
 done
 
 response=$(curl -w '%{http_code}' --silent -o /dev/null $service_url)
@@ -16,4 +16,5 @@ if [[ "$response" != "200" ]]; then
   exit 1
 fi
 
+# Deleting docker images of previous releases
 docker image prune -a -f

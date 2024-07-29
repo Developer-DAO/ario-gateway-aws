@@ -4,14 +4,6 @@ resource "aws_security_group" "ar_io_nodes_sg" {
   vpc_id      = var.vpc_id
 
   ingress {
-    description = "Allow inbound SSH in the private VPC"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  ingress {
     description = "Allow inbound HTTP traffic on port 3000 in the private VPC"
     from_port   = 3000
     to_port     = 3000
@@ -78,7 +70,7 @@ resource "aws_launch_template" "ar_io_nodes_launch_template" {
     device_name = "/dev/sda1"
 
     ebs {
-      volume_size = 40
+      volume_size = 500
       volume_type = "gp3"
     }
   }
@@ -92,6 +84,10 @@ resource "aws_launch_template" "ar_io_nodes_launch_template" {
       DeploymentGroup = "ar-io-nodes-${var.alias}"
     }
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_autoscaling_group" "ar_io_nodes_asg" {
@@ -103,12 +99,23 @@ resource "aws_autoscaling_group" "ar_io_nodes_asg" {
 
   launch_template {
     id      = aws_launch_template.ar_io_nodes_launch_template.id
-    version = "$Latest" # TODO is this the right thing to do?
+    version = aws_launch_template.ar_io_nodes_launch_template.latest_version
   }
 
   target_group_arns = [
     aws_lb_target_group.ar_io_nodes_tg.arn
   ]
+
+ instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_efs_file_system" "cache_fs" {
@@ -119,9 +126,10 @@ resource "aws_efs_file_system" "cache_fs" {
     Service     = "ar-io-nodes"
   }
 
-  # DONT'T DELETE THIS FILESYSTEM
   lifecycle {
-    # prevent_destroy = true
+    # As this file system will contain database snapshots,
+    # it should not get deleted or replace accident.
+    prevent_destroy = true
     # workaround for old version of terraform (manually to 'elastic')
     ignore_changes = [throughput_mode]
   }

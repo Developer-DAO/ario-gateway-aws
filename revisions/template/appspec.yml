@@ -5,18 +5,18 @@ files:
     destination: /opt/ar-io-node
 hooks:
   ApplicationStop:
-    - location: scripts/1-application-stop
+    - location: codedeploy-scripts/1-application-stop
       timeout: 300
       runas: root
   BeforeInstall:
-    - location: scripts/2-before-install
-      timeout: 1200
+    - location: codedeploy-scripts/2-before-install
+      timeout: 300
       runas: root
   ApplicationStart:
-    - location: scripts/3-application-start
+    - location: codedeploy-scripts/3-application-start
       timeout: 300
       runas: root
   ValidateService:
-    - location: scripts/4-validate-service
-      timeout: 1200
+    - location: codedeploy-scripts/4-validate-service
+      timeout: 300
       runas: root

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Service definition in <repository>/resources/userdata.sh
+systemctl stop ar-io-node

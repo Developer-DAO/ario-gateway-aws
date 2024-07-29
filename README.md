@@ -1,52 +1,94 @@
 # AR.IO Gateway Infrastructure
 
 This repository contains Terraform templates which define resources to host an
-AR.IO gateway.
+AR.IO gateway on AWS.
 
 The domains are managed with Vercel, the rest is hosted on AWS.
 
+> Note: Current version used for first deploy is 15. This version is defined in
+> [resources/userdata.sh](resources/userdata.sh:144) and should be updated when
+> new releases are available.
+
 ## Environment Variables
 
-There are two kinds of environment variables, those for Terraform and those for
-the AR.IO gateway. The Terraform variables are used to configure the AWS and
-Vercel providers. The AR.IO gateway variables are used to configure the gateway
+There are two kinds of environment variables:
+
+1. Variables used by Terraform at deployment time.
+2. Variables used by the AR.IO gateway instances at runtime.
 
 ### Terraform Deploy
 
-You can define Terraform inputs and provider API keys via environment variables.
+Define Terraform inputs and provider API keys via environment variables.
+
 This allows to keep the secrets out of the Terraform configuration files and use
 GitHub Actions to deploy the infrastructure.
 
-Copy the `resources/template.env.terraform` to
-`resources/.env.terraform` and fill in the values.
+Copy `resources/template.env.terraform` to `resources/.env.terraform` and fill
+in the values to configure the Terraform deployment.
 
 ### AR.IO Gateway Configuration
 
-Terraform will copy the gateway config file in SSM Parameter Store, allowing the
-gateway instances to fetch them at boot time.
+Terraform will encrypt and upload `resources/.env.gateway` into the SSM
+Parameter Store, allowing the gateway instances to fetch them at boot time.
 
-Copy the `resources/template.env.gateway` to
-`resources/.env.gateway` and fill in the values.
+Copy the `resources/template.env.gateway` to `resources/.env.gateway` and fill
+in the values.
 
-## Commands
+## Infrastructure Deployment
 
 These commands will use the environment variables from
-`resources/.env` files.
+`resources/.env.terraform`.
 
-Plan the deployment and save the plan into a file:
+### Plan
+
+Plan the deployment and save the plan into a file.
 
     scripts/plan
 
-Deploy the infrastructure from the plan file:
+### Apply
+
+Deploy the infrastructure from the plan file and save the outputs into
+`resources/outputs`.
 
     scripts/apply
 
-Destroy the infrastructure:
+### Destroy
+
+Delete all AWS resources.
 
     scripts/destroy
 
-Update to a new release:
+## Gateway Updates
 
-    scripts/update <REVISION>
+You don't need to redeploy the infrastructure to update the gateway. The
+follwing commands will just stop each instance and update it.
 
-Create a new revision in the `revisions` folder before running this command.
+### Update Gateway
+
+These commands will create an archive with the a new revision of the gateway,
+upload it to S3 and update the instances via CodeDeploy.
+
+#### Creating an Update
+
+To create a new update from a template if the version you need doesn't exist yet.
+
+    scripts/prepare-revision <VERSION>
+
+After running this command follow these steps:
+
+- Copy the new `docker-compose.yaml` from the `ar-io/ar-io-node` GitHub repo
+  into your newly created revision source folder. (e.g.,
+  `revisions/<VERSION>/source`)
+- delete `build:` from each service
+- add `pull_policy: always` to each service
+- update the `AR_IO_NODE_RELEASE` environment variable to reflect the revision.
+
+#### Deploying an Update
+
+To archive, upload, and deploy the update:
+
+    scripts/deploy-revision <VERSION>
+
+## SSH Access
+
+SSM Session Manager is the only way to SSH into the instances.

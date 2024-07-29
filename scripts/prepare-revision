@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [[ "$1" = "" ]]
+then
+  echo "Usage: scripts/prepare-update <REVISION>"
+  exit 1
+fi
+
+revision=$1
+revisionPath="revisions/${revision}"
+
+cp -r "revisions/template" $revisionPath
+cp "resources/.env.gateway" "${revisionPath}/source/.env"
+
+echo "Revision ${1} created"
+echo "Please add new '${revisionPath}/source/docker-compose.yaml' before running scripts/deploy-update"

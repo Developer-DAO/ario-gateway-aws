@@ -1,20 +1,27 @@
 #!/bin/bash
 
+if [[ "$1" = "" ]]
+then
+  echo "Usage: scripts/deploy-revision <REVISION>"
+  exit 1
+fi
+
 revision=$1
 environment="resources/.env.terraform"
 archiveFile="${revision}.tar.gz"
 archivePath="revisions/archives/${archiveFile}"
 revisionPath="revisions/${revision}"
+revisionBucket=$(. "$environment" && terraform output -raw CodeDeployBucket)
+codeDeployAppName=$(. "$environment" && echo "ar-io-nodes-${TF_VAR_alias}")
 
-. "$environment"
-
+echo "Creating archive..."
 find $revisionPath -printf "%P\n" | \
 tar -czf "$archivePath" --no-recursion -C "$revisionPath" -T -
 
-revisionBucket=$(. "$environment" && terraform output -raw CodeDeployBucket)
+echo "Uploading archive to S3..."
 . "$environment" && aws s3 cp "$archivePath" "s3://${revisionBucket}/${archiveFile}"
 
-codeDeployAppName="ar-io-nodes-${TF_VAR_alias}"
+echo "Deploying with CodeDeploy..."
 . "$environment" && aws deploy create-deployment \
 --region "$TF_VAR_region" \
 --application-name "$codeDeployAppName" \
@@ -22,3 +29,5 @@ codeDeployAppName="ar-io-nodes-${TF_VAR_alias}"
 --deployment-group-name "$codeDeployAppName" \
 --s3-location "bucket=${revisionBucket},bundleType=tgz,key=${archiveFile}" \
 --description "Deploying revision ${revision} to ${codeDeployAppName}"
+
+. "$environment" && echo "https://${TF_VAR_region}.console.aws.amazon.com/codesuite/codedeploy/deployments"

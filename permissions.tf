@@ -51,15 +51,15 @@ resource "aws_iam_role_policy" "ar_io_nodes_instance_role_policy" {
     Version = "2012-10-17"
     Statement = [
       # Enables Session Manager access for EC2 instances
-      # {
-      #   "Effect": "Allow",
-      #   "Action": [
-      #     "ssmmessages:*",
-      #     "ec2messages:*",
-      #     "ssm:UpdateInstanceInformation"
-      #   ],
-      #   "Resource": "*"
-      # },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "ssmmessages:*",
+          "ec2messages:*",
+          "ssm:UpdateInstanceInformation"
+        ],
+        "Resource": "*"
+      },
       {
         Effect = "Allow"
         Action = [

@@ -1,30 +1,29 @@
 ---
-version: "3.7"
-
 services:
   envoy:
-    image: ghcr.io/ar-io/ar-io-envoy:${ENVOY_IMAGE_TAG:-f6576577e421a4c9173d6d5d39b4540766b366ae}
+    image: ghcr.io/ar-io/ar-io-envoy:d26d4958a2624f85c9f430e6a760523102a9e891
     pull_policy: always
     restart: on-failure:5
     ports:
       - "3000:3000"
-      - "9901:9901"
     environment:
       - LOG_LEVEL=${ENVOY_LOG_LEVEL:-info}
       - TVAL_AR_IO_HOST=core
       - TVAL_AR_IO_PORT=4000
       - TVAL_OBSERVER_HOST=observer
-      - TVAL_OBSERVER_PORT=5000
+      - TVAL_OBSERVER_PORT=5050
       - TVAL_GATEWAY_HOST=${TRUSTED_GATEWAY_HOST:-arweave.net}
       - TVAL_GRAPHQL_HOST=${GRAPHQL_HOST:-core}
       - TVAL_GRAPHQL_PORT=${GRAPHQL_PORT:-4000}
       - TVAL_ARNS_ROOT_HOST=${ARNS_ROOT_HOST:-}
+    networks:
+      - ar-io-network
     depends_on:
       - core
       - observer
 
   core:
-    image: ghcr.io/ar-io/ar-io-core:${CORE_IMAGE_TAG:-af52a298c741267675ce31b7492eed13b893ce66}
+    image: ghcr.io/ar-io/ar-io-core:c9bf76284c39bdfc10381f6becb892442e183098
     pull_policy: always
     restart: on-failure:5
     ports:
@@ -58,7 +57,7 @@ services:
       - ARNS_ROOT_HOST=${ARNS_ROOT_HOST:-}
       - SANDBOX_PROTOCOL=${SANDBOX_PROTOCOL:-}
       - START_WRITERS=${START_WRITERS:-}
-      - CONTRACT_ID=${CONTRACT_ID:-}
+      - IO_PROCESS_ID=${IO_PROCESS_ID:-}
       - CHAIN_CACHE_TYPE=${CHAIN_CACHE_TYPE:-redis}
       - REDIS_CACHE_URL=${REDIS_CACHE_URL:-redis://redis:6379}
       - REDIS_CACHE_TTL_SECONDS=${REDIS_CACHE_TTL_SECONDS:-}
@@ -67,48 +66,73 @@ services:
       - ON_DEMAND_RETRIEVAL_ORDER=${ON_DEMAND_RETRIEVAL_ORDER:-}
       - WEBHOOK_TARGET_SERVERS=${WEBHOOK_TARGET_SERVERS:-}
       - WEBHOOK_INDEX_FILTER=${WEBHOOK_INDEX_FILTER:-}
+      - WEBHOOK_BLOCK_FILTER=${WEBHOOK_INDEX_FILTER:-}
       - CONTIGUOUS_DATA_CACHE_CLEANUP_THRESHOLD=${CONTIGUOUS_DATA_CACHE_CLEANUP_THRESHOLD:-}
       - TRUSTED_ARNS_RESOLVER_TYPE=${TRUSTED_ARNS_RESOLVER_TYPE:-gateway}
       - TRUSTED_ARNS_RESOLVER_URL=${TRUSTED_ARNS_RESOLVER_URL:-https://__NAME__.arweave.dev}
+      - ENABLE_MEMPOOL_WATCHER=${ENABLE_MEMPOOL_WATCHER:-false}
+      - MEMPOOL_POOLING_INTERVAL_MS=${MEMPOOL_POOLING_INTERVAL_MS:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET:-}
+      - AWS_S3_PREFIX=${AWS_S3_PREFIX:-}
+      - AR_IO_NODE_RELEASE=${AR_IO_NODE_RELEASE:-15}
+      - CHUNK_POST_URLS=${CHUNK_POST_URLS:-}
+      - CHUNK_POST_RESPONSE_TIMEOUT_MS=${CHUNK_POST_RESPONSE_TIMEOUT_MS:-}
+      - CHUNK_POST_ABORT_TIMEOUT_MS=${CHUNK_POST_ABORT_TIMEOUT_MS:-}
+      - AO_CU_URL=${AO_CU_URL:-}
+      - AO_MU_URL=${AO_MU_URL:-}
+      - AO_GATEWAY_URL=${AO_GATEWAY_URL:-}
+      - AO_GRAPHQL_URL=${AO_GRAPHQL_URL:-}
+    networks:
+      - ar-io-network
     depends_on:
       - redis
 
   redis:
-    image: redis:${REDIS_IMAGE_TAG:-7}
+    image: redis:7
     pull_policy: always
     command: redis-server --maxmemory ${REDIS_MAX_MEMORY:-256mb} --maxmemory-policy allkeys-lru ${EXTRA_REDIS_FLAGS:---save "" --appendonly no}
     restart: on-failure:5
     ports:
-      - 6379:6379
+      - "6379" # don't expose redis externally by default
     volumes:
       - ${REDIS_DATA_PATH:-./data/redis}:/data
+    networks:
+      - ar-io-network
 
   observer:
-    image: ghcr.io/ar-io/ar-io-observer:${OBSERVER_IMAGE_TAG:-953883ef8cfbce33dd9fa85b5e58c5e67ed4bfa3}
+    image: ghcr.io/ar-io/ar-io-observer:b2c64c3e6838511966ca4b70c05294f35aa91114
     pull_policy: always
     restart: on-failure:5
     ports:
-      - 5000:5000
+      - 5050:5050
     volumes:
       - ${TEMP_DATA_PATH:-./data/tmp}:/app/data/tmp
       - ${REPORTS_DATA_PATH:-./data/reports}:/app/data/reports
-      - ${WARP_CACHE_PATH:-./data/warp/cache}:/app/cache/warp
       - ${WALLETS_PATH:-./wallets}:/app/wallets
     environment:
-      - PORT=5000
+      - PORT=5050
       - LOG_LEVEL=${OBSERVER_LOG_LEVEL:-info}
       - OBSERVER_WALLET=${OBSERVER_WALLET:-<example>}
-      - CONTRACT_ID=${CONTRACT_ID:-}
+      - IO_PROCESS_ID=${IO_PROCESS_ID:-}
       - SUBMIT_CONTRACT_INTERACTIONS=${SUBMIT_CONTRACT_INTERACTIONS:-true}
       - NUM_ARNS_NAMES_TO_OBSERVE_PER_GROUP=${NUM_ARNS_NAMES_TO_OBSERVE_PER_GROUP:-5}
       - REPORT_GENERATION_INTERVAL_MS=${REPORT_GENERATION_INTERVAL_MS:-}
       - RUN_OBSERVER=${RUN_OBSERVER:-true}
       - MIN_RELEASE_NUMBER=${MIN_RELEASE_NUMBER:-0}
-      - AR_IO_NODE_RELEASE=${AR_IO_NODE_RELEASE:-9}
-      - CONTRACT_CACHE_URL=${CONTRACT_CACHE_URL:-}
+      - AR_IO_NODE_RELEASE=${AR_IO_NODE_RELEASE:-15}
+      - AO_CU_URL=${AO_CU_URL:-}
+      - AO_MU_URL=${AO_MU_URL:-}
+      - AO_GATEWAY_URL=${AO_GATEWAY_URL:-}
+      - AO_GRAPHQL_URL=${AO_GRAPHQL_URL:-}
+    networks:
+      - ar-io-network
 
   resolver:
-    image: ghcr.io/ar-io/arns-resolver:${RESOLVER_IMAGE_TAG:-f90dc9fa07e6beae654ed4087ca129dde589ab08}
+    image: ghcr.io/ar-io/arns-resolver:e35776ceb4324494d403b1fb900bfd06eb97a652
     pull_policy: always
     restart: on-failure:5
     ports:
@@ -116,10 +140,36 @@ services:
     environment:
       - PORT=6000
       - LOG_LEVEL=${LOG_LEVEL:-info}
-      - CONTRACT_ID=${CONTRACT_ID:-}
+      - IO_PROCESS_ID=${IO_PROCESS_ID:-}
       - RUN_RESOLVER=${RUN_RESOLVER:-false}
       - EVALUATION_INTERVAL_MS=${EVALUATION_INTERVAL_MS:-}
-      - CONTRACT_CACHE_URL=${CONTRACT_CACHE_URL:-}
+      - ARNS_CACHE_TTL_MS=${RESOLVER_CACHE_TTL_MS:-}
       - ARNS_CACHE_PATH=${ARNS_CACHE_PATH:-./data/arns}
+      - AO_CU_URL=${AO_CU_URL:-}
+      - AO_MU_URL=${AO_MU_URL:-}
+      - AO_GATEWAY_URL=${AO_GATEWAY_URL:-}
+      - AO_GRAPHQL_URL=${AO_GRAPHQL_URL:-}
     volumes:
       - ${ARNS_CACHE_PATH:-./data/arns}:/app/data/arns
+    networks:
+      - ar-io-network
+
+  litestream:
+    image: ghcr.io/ar-io/ar-io-litestream:be121fc0ae24a9eb7cdb2b92d01f047039b5f5e8
+    pull_policy: always
+    profiles:
+      - litestream
+    volumes:
+      - ${SQLITE_DATA_PATH:-./data/sqlite}:/app/data/sqlite
+    environment:
+      - TVAL_AR_IO_SQLITE_BACKUP_S3_BUCKET_NAME=${AR_IO_SQLITE_BACKUP_S3_BUCKET_NAME:-}
+      - TVAL_AR_IO_SQLITE_BACKUP_S3_BUCKET_REGION=${AR_IO_SQLITE_BACKUP_S3_BUCKET_REGION:-}
+      - TVAL_AR_IO_SQLITE_BACKUP_S3_BUCKET_ACCESS_KEY=${AR_IO_SQLITE_BACKUP_S3_BUCKET_ACCESS_KEY:-}
+      - TVAL_AR_IO_SQLITE_BACKUP_S3_BUCKET_SECRET_KEY=${AR_IO_SQLITE_BACKUP_S3_BUCKET_SECRET_KEY:-}
+      - TVAL_AR_IO_SQLITE_BACKUP_S3_BUCKET_PREFIX=${AR_IO_SQLITE_BACKUP_S3_BUCKET_PREFIX:-}
+    networks:
+      - ar-io-network
+
+networks:
+  ar-io-network:
+    name: ar-io-network

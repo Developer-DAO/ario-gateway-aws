@@ -31,7 +31,7 @@ resource "aws_codedeploy_deployment_group" "ar_io_nodes" {
 
 resource "aws_s3_bucket" "codedeploy_deployments" {
   bucket_prefix = "ar-io-nodes-${var.alias}-codedeploy-"
-  force_destroy = true # delete even if not empty
+  force_destroy = true # bucket doesn't contain critical data, only release files.
 }
 
 resource "aws_s3_bucket_ownership_controls" "codedeploy_deployments" {

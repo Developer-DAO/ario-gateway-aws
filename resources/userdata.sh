@@ -11,9 +11,9 @@ apt-get install -y \
   ruby-full
 pip install awscli
 
-# Format and attach host NVMe disk
-mkfs -t ext4 -L ar-io-data /dev/nvme1n1
-echo "/dev/nvme1n1 /data ext4 defaults 0 2" >> /etc/fstab
+# Format and attach EBS
+mkfs -t ext4 -L ar-io-data /dev/sda1
+echo "/dev/sda1 /data ext4 defaults 0 2" >> /etc/fstab
 mkdir /data
 mount /data
 mkdir /data/sqlite
@@ -138,13 +138,10 @@ systemctl restart amazon-cloudwatch-agent
 # Get the region from the metadata service
 export AWS_DEFAULT_REGION=$(curl http://169.254.169.254/latest/meta-data/placement/region)
 
-# Release 9 compose file without "build:" attributes
+# Download Release 15
 mkdir -p /opt/ar-io-node
 curl -o /opt/ar-io-node/docker-compose.yaml \
--L https://gist.githubusercontent.com/kay-is/370cf4a7d08b3fa4bb5f4fb1ce60212e/raw/ec2307ffac543265eab8395cbd06448b36b9e3cc/docker-compose.yaml
-
-# Clone ar-io-node repo
-#git clone https://github.com/ar-io/ar-io-node.git /opt/ar-io-node
+-L https://gist.githubusercontent.com/kay-is/4282773a7ee0bf16cdf34794829daa7f/raw/a5cd4b33c07efa4ff048e6c81f0bd2ae99633b46/docker-compose.yaml
 
 # Download the .env file from SSM
 aws ssm get-parameter \
@@ -197,7 +194,7 @@ TimeoutSec=60
 WantedBy=multi-user.target
 EOF
 
-# Enable and start service
+# Enable and start gateway service
 systemctl daemon-reload
 systemctl enable ar-io-node
 systemctl start ar-io-node
