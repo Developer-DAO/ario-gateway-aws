@@ -12,11 +12,15 @@ hooks:
     - location: codedeploy-scripts/2-before-install
       timeout: 300
       runas: root
+  AfterInstall:
+    - location: codedeploy-scripts/3-after-install
+      timeout: 300
+      runas: root
   ApplicationStart:
-    - location: codedeploy-scripts/3-application-start
+    - location: codedeploy-scripts/4-application-start
       timeout: 300
       runas: root
   ValidateService:
-    - location: codedeploy-scripts/4-validate-service
+    - location: codedeploy-scripts/5-validate-service
       timeout: 1200
       runas: root
