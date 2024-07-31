@@ -13,11 +13,6 @@ variable "account_id" {
   description = "The account id"
 }
 
-variable "use_vercel_domains" {
-  type        = string
-  description = "Use Vercel for domain management."
-}
-
 variable "domain_name" {
   type        = string
   description = "The domain name"
