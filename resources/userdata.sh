@@ -11,6 +11,11 @@ apt-get install -y \
   ruby-full
 pip install awscli
 
+# Install more current version Docker Compose
+curl -SL https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64 \
+  -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
 # Format and attach EBS
 mkfs -t ext4 -L ar-io-data /dev/sda1
 echo "/dev/sda1 /data ext4 defaults 0 2" >> /etc/fstab
@@ -186,8 +191,8 @@ Requires=docker.service
 WorkingDirectory=/opt/ar-io-node
 Restart=always
 RestartSec=10s
-ExecStart=/usr/bin/docker-compose -f /opt/ar-io-node/docker-compose.yaml up
-ExecStop=/usr/bin/docker-compose -f /opt/ar-io-node/docker-compose.yaml down
+ExecStart=/usr/local/bin/docker-compose -f /opt/ar-io-node/docker-compose.yaml up
+ExecStop=/usr/local/bin/docker-compose -f /opt/ar-io-node/docker-compose.yaml down
 TimeoutSec=60
 
 [Install]

@@ -112,10 +112,6 @@ resource "aws_autoscaling_group" "ar_io_nodes_asg" {
       min_healthy_percentage = 50
     }
   }
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_efs_file_system" "cache_fs" {
