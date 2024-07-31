@@ -129,7 +129,7 @@ resource "aws_efs_file_system" "cache_fs" {
   lifecycle {
     # As this file system will contain database snapshots,
     # it should not get deleted or replace accident.
-    prevent_destroy = true
+    # prevent_destroy = true
     # workaround for old version of terraform (manually to 'elastic')
     ignore_changes = [throughput_mode]
   }
